@@ -1,0 +1,7 @@
+{
+    "python.testing.pytestArgs": [
+        "image-agent"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
+}
