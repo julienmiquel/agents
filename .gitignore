@@ -206,3 +206,8 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 .DS_Store
+.adk/**
+image-agent/.adk/**
+old/*
+image-agent/.backup_image-agent_20260206_165423/*
+image-agent/app/.adk/*

@@ -18,10 +18,12 @@ This repository adopts a **mono-repo** structure where each agent resides in its
 agents/
 ├── README.md           # This file
 ├── image-agent/        # Image Generation & Upscaling Agent
-│   ├── agent.py        # Main agent definition
-│   ├── tools/          # Agent tools (skills)
+│   ├── app/            # Source code for the agent application
+│   │   ├── agent.py    # Main agent definition
+│   │   └── tools/      # Agent tools (skills)
+│   ├── deployment/     # Deployment configuration and scripts
 │   ├── tests/          # Unit and integration tests
-│   └── docs/           # Agent-specific documentation
+│   └── pyproject.toml  # Project configuration and dependencies
 └── ...
 ```
 
@@ -30,7 +32,7 @@ agents/
 Most agents in this repository follow a similar internal architecture:
 -   **Agent Definition**: Defined using the ADK `Agent` class (`agent.py`).
 -   **Tools**: Python functions wrapped as tools that give the agent capabilities (e.g., calling Vertex AI APIs).
--   **Deployment**: Standardized `deploy.sh` scripts for deploying to **Google Cloud Agent Engine**.
+-   **Deployment**: Deployment configurations and scripts located in the `deployment/` directory, managed via `pyproject.toml`.
 
 ## Available Agents
 

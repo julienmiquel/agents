@@ -11,6 +11,9 @@ image-agent/
 │   ├── agent.py               # Main agent logic
 │   ├── agent_engine_app.py    # Agent Engine application logic
 │   └── app_utils/             # App utilities and helpers
+├── .cloudbuild/               # CI/CD pipeline configurations for Google Cloud Build
+├── deployment/                # Infrastructure and deployment scripts
+├── notebooks/                 # Jupyter notebooks for prototyping and evaluation
 ├── tests/                     # Unit, integration, and load tests
 ├── GEMINI.md                  # AI-assisted development guide
 ├── Makefile                   # Development commands
@@ -24,6 +27,7 @@ image-agent/
 Before you begin, ensure you have:
 - **uv**: Python package manager (used for all dependency management in this project) - [Install](https://docs.astral.sh/uv/getting-started/installation/) ([add packages](https://docs.astral.sh/uv/concepts/dependencies/) with `uv add <package>`)
 - **Google Cloud SDK**: For GCP services - [Install](https://cloud.google.com/sdk/docs/install)
+- **Terraform**: For infrastructure deployment - [Install](https://developer.hashicorp.com/terraform/downloads)
 - **make**: Build automation tool - [Install](https://www.gnu.org/software/make/) (pre-installed on most Unix-based systems)
 
 
@@ -33,19 +37,6 @@ Install required packages and launch the local development environment:
 
 ```bash
 make install && make playground
-```
-
-
-## Running with uv
-
-You can also run the agent web interface directly using `uv`:
-
-```bash
-uv run adk web
-```
-or 
-```bash
-uvx adk web
 ```
 
 ## Commands
@@ -58,6 +49,7 @@ uvx adk web
 | `make test`          | Run unit and integration tests                                                              |
 | `make deploy`        | Deploy agent to Agent Engine                                                                |
 | `make register-gemini-enterprise` | Register deployed agent to Gemini Enterprise                                  |
+| `make setup-dev-env` | Set up development environment resources using Terraform                                   |
 
 For full command options and usage, refer to the [Makefile](Makefile).
 
@@ -65,7 +57,6 @@ For full command options and usage, refer to the [Makefile](Makefile).
 
 | Command | What It Does |
 |---------|--------------|
-| `uvx agent-starter-pack enhance` | Add CI/CD pipelines and Terraform infrastructure |
 | `uvx agent-starter-pack setup-cicd` | One-command setup of entire CI/CD pipeline + infrastructure |
 | `uvx agent-starter-pack upgrade` | Auto-upgrade to latest version while preserving customizations |
 | `uvx agent-starter-pack extract` | Extract minimal, shareable version of your agent |
@@ -75,6 +66,7 @@ For full command options and usage, refer to the [Makefile](Makefile).
 ## Development
 
 Edit your agent logic in `app/agent.py` and test with `make playground` - it auto-reloads on save.
+Use notebooks in `notebooks/` for prototyping and Vertex AI Evaluation.
 See the [development guide](https://googlecloudplatform.github.io/agent-starter-pack/guide/development-guide) for the full workflow.
 
 ## Deployment
@@ -83,22 +75,8 @@ See the [development guide](https://googlecloudplatform.github.io/agent-starter-
 gcloud config set project <your-project-id>
 make deploy
 ```
-
-To add CI/CD and Terraform, run `uvx agent-starter-pack enhance`.
 To set up your production infrastructure, run `uvx agent-starter-pack setup-cicd`.
 See the [deployment guide](https://googlecloudplatform.github.io/agent-starter-pack/guide/deployment) for details.
-
-### Alternative Deployment (Manual)
-
-You can also deploy using the Python script directly, which is useful for testing or simple deployments:
-
-```bash
-# Create and deploy the agent
-uv run python deployment/deploy.py --create
-
-# List deployed agents
-uv run python deployment/deploy.py --list
-```
 
 ## Observability
 
