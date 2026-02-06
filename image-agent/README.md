@@ -38,13 +38,23 @@ image-agent/
 
 ## Installation
 
+You can choose between `uv` (Recommended) or `poetry`.
+
+### Option 1: Using `uv` (Recommended)
+
+`uv` is extremely fast and pre-configured for this project.
+
 ```bash
-# Clone this repository.
-git clone https://github.com/google/adk-samples.git
-cd image-agent
+# Install dependencies
+uv sync
+```
 
+### Option 2: Using `poetry`
 
-# Install the package and dependencies.
+If you prefer Poetry, we have enabled support for it.
+
+```bash
+# Install dependencies
 poetry install
 ```
 
@@ -103,7 +113,9 @@ See the [deployment guide](https://googlecloudplatform.github.io/agent-starter-p
 
 ### Alternative Deployment (Manual)
 
-You can also deploy using the Python script directly, which is useful for testing or simple deployments:
+You can also deploy using the Python script directly, which is useful for testing or simple deployments.
+
+#### Option 1: Using `uv`
 
 ```bash
 # Create and deploy the agent
@@ -111,6 +123,16 @@ uv run python deployment/deploy.py --create
 
 # List deployed agents
 uv run python deployment/deploy.py --list
+```
+
+#### Option 2: Using `poetry`
+
+```bash
+# Create and deploy the agent
+poetry run python deployment/deploy.py --create
+
+# List deployed agents
+poetry run python deployment/deploy.py --list
 ```
 
 ## Observability
