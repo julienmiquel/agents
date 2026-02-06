@@ -19,20 +19,33 @@ image-agent/
 
 > 💡 **Tip:** Use [Gemini CLI](https://github.com/google-gemini/gemini-cli) for AI-assisted development - project context is pre-configured in `GEMINI.md`.
 
-## Requirements
+## Prerequisites
 
-Before you begin, ensure you have:
-- **uv**: Python package manager (used for all dependency management in this project) - [Install](https://docs.astral.sh/uv/getting-started/installation/) ([add packages](https://docs.astral.sh/uv/concepts/dependencies/) with `uv add <package>`)
-- **Google Cloud SDK**: For GCP services - [Install](https://cloud.google.com/sdk/docs/install)
-- **make**: Build automation tool - [Install](https://www.gnu.org/software/make/) (pre-installed on most Unix-based systems)
+*   Python 3.10+
+*   uv
+    *   For dependency management and packaging. Please follow the
+        instructions on the official
+        [uv website](https://docs.astral.sh/uv/) for installation.
 
+    ```bash
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    ```
 
-## Quick Start
+* A project on Google Cloud Platform
+* Google Cloud CLI
+    *   For installation, please follow the instruction on the official
+        [Google Cloud website](https://cloud.google.com/sdk/docs/install).
 
-Install required packages and launch the local development environment:
+## Installation
 
 ```bash
-make install && make playground
+# Clone this repository.
+git clone https://github.com/google/adk-samples.git
+cd image-agent
+
+
+# Install the package and dependencies.
+poetry install
 ```
 
 

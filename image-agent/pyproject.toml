@@ -17,6 +17,31 @@ dependencies = [
 requires-python = ">=3.10,<3.14"
 
 
+[tool.poetry]
+name = "image-agent"
+version = "0.1.0"
+description = "A demo agent for Gemini Enterprise that generates images based on text prompts and upscaling them using Imagen model."
+authors = ["Julien Miquel <julien.miquel@google.com>"]
+packages = [{include = "app"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.14"
+google-adk = ">=1.15.0,<2.0.0"
+opentelemetry-instrumentation-google-genai = ">=0.1.0,<1.0.0"
+gcsfs = ">=2024.11.0"
+google-cloud-logging = ">=3.12.0,<4.0.0"
+google-cloud-aiplatform = {extras = ["evaluation", "agent-engines"], version = "1.130.0"}
+protobuf = ">=6.31.1,<7.0.0"
+absl-py = ">=2.2.1"
+google-auth = ">=2.30.0"
+requests = ">=2.32.5"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.3.4,<9.0.0"
+pytest-asyncio = ">=0.23.8,<1.0.0"
+nest-asyncio = ">=1.6.0,<2.0.0"
+
+
 [dependency-groups]
 dev = [
     "pytest>=8.3.4,<9.0.0",
@@ -102,7 +127,7 @@ packages = ["app","frontend"]
 # Generation metadata - enables CLI commands to understand project context
 # These fields allow any generated project to work as a remote template
 name = "image-agent"
-description = "Simple ReAct agent"
+description = "Image manipulation agent"
 base_template = "adk"
 agent_directory = "app"
 
