@@ -15,6 +15,10 @@
 """Deployment script for Academic Research"""
 
 import os
+import sys
+
+# Add project root to path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import vertexai
 from absl import app, flags
@@ -105,9 +109,18 @@ def create() -> None:
             "pydantic (>=2.10.6,<3.0.0)",
             "absl-py (>=2.2.1,<3.0.0)",
             "google-auth",
-            # "opentelemetry-instrumentation-google-genai",
+            "opentelemetry-instrumentation-google-genai",
         ],
         extra_packages=["app"],
+        env_vars={
+            "LOGS_BUCKET_NAME": os.getenv("LOGS_BUCKET_NAME", ""),
+            "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT": os.getenv(
+                "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT", "true"
+            ),
+            "GOOGLE_CLOUD_AGENT_ENGINE_ENABLE_TELEMETRY": os.getenv(
+                "GOOGLE_CLOUD_AGENT_ENGINE_ENABLE_TELEMETRY", "true"
+            ),
+        },
     )
     print(f"Created remote agent: {remote_agent.resource_name}")
     

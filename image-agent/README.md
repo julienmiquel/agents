@@ -3,6 +3,12 @@
 Simple ReAct agent
 Agent generated with [`googleCloudPlatform/agent-starter-pack`](https://github.com/GoogleCloudPlatform/agent-starter-pack) version `0.33.2`
 
+## Features
+
+*   **Image Generation**: Leverages Gemini 3 Pro for high-quality image generation with reasoning capabilities.
+*   **Image Upscaling**: Enhances image resolution (4x default, 2x for large images).
+*   **Artifact Handling**: Supports downloading files from URLs and loading images from artifacts for processing.
+
 ## Project Structure
 
 ```
