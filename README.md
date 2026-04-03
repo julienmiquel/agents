@@ -39,6 +39,20 @@ Most agents in this repository follow a similar internal architecture:
 | Agent Name | Description | Key Models |
 | :--- | :--- | :--- |
 | **[Image Agent](./image-agent/README.md)** | Generates and upscales images using natural language prompts. | `gemini-3-pro-image`, `imagen-4.0` |
+| **[BigQuery Agent](./bigquery-agent-talk2data/README.md)** | Natural language interface for BigQuery and Google Trends data. | `gemini-2.5-flash` |
+
+
+## CI/CD & Automated Deployment
+
+This repository supports automated deployments using Google Cloud Build. 
+
+The root `cloudbuild.yaml` serves as a dispatcher that triggers sub-project builds when changes are detected.
+
+To trigger a build manually from the workspace root:
+
+```bash
+gcloud builds submit --project=your-target-project-id --config=cloudbuild.yaml .
+```
 
 ## Getting Started
 

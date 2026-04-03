@@ -1,0 +1,17 @@
+# Main Cloud Build Configuration
+# Triggers the sub-project build for bigquery-agent-talk2data
+
+steps:
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: trigger-bigquery-agent-build
+  args:
+  - 'builds'
+  - 'submit'
+  - '--config=bigquery-agent-talk2data/deployment/cloudbuild.yaml'
+  - 'bigquery-agent-talk2data'
+
+substitutions:
+  _REGION: us-central1
+
+options:
+  substitutionOption: ALLOW_LOOSE

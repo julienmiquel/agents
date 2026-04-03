@@ -1,0 +1,14 @@
+[
+  {
+    "prompt": "What are the top 3 search terms globally?",
+    "expected_response": "The top search terms are...",
+    "expected_tool_calls": [
+      {
+        "name": "query_conversational_analytics_api",
+        "args": {
+          "prompt": "What are the top 3 search terms globally?"
+        }
+      }
+    ]
+  }
+]

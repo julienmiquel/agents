@@ -1,0 +1,29 @@
+# Sub-project Cloud Build Configuration for bigquery-agent-talk2data
+# Installs dependencies and runs deployment script
+
+steps:
+- name: 'python:3.11-slim'
+  id: build-and-deploy
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    echo "Installing package and dependencies..."
+    pip install .
+    
+    echo "Running deployment script..."
+    python deployment/deploy.py --create
+  env:
+  - 'GOOGLE_CLOUD_PROJECT=${_PROJECT_ID}'
+  - 'GOOGLE_CLOUD_LOCATION=${_LOCATION}'
+  - 'GOOGLE_CLOUD_STORAGE_BUCKET=${_STAGING_BUCKET}'
+  - 'GEMINI_APP_ID=${_GEMINI_APP_ID}'
+
+substitutions:
+  _PROJECT_ID: ml-demo-384110
+  _LOCATION: us-central1
+  _STAGING_BUCKET: ml-demo-384110-agent-engine
+  _GEMINI_APP_ID: ""
+
+options:
+  substitutionOption: ALLOW_LOOSE
