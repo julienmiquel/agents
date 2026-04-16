@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from google.adk.agents import Agent
 from google.adk.apps import App
 from google.adk.models import Gemini
+from google.adk.planners import BuiltInPlanner
 from google.genai import types
 from google.cloud import geminidataanalytics
 
@@ -91,19 +92,33 @@ def query_conversational_analytics_api(prompt: str) -> str:
 # --- Define the ADK Agent ---
 root_agent = Agent(
     name="ca_bridge_agent",
+    description="Google Trends analytics agent - answers questions about trends data from BigQuery.",
     model=Gemini(
         model=MODEL_NAME,
         retry_options=types.HttpRetryOptions(attempts=3, 
             http_status_codes=[408, 429, 500, 502, 503, 504],
         ), 
     ), 
-    instruction=(
-        "You are a helpful assistant. Help users analyze Google Trends data using the provided tools.\n\n"
-        "Your response SHOULD use standard Markdown formatting (lists, bold text, tables) to present data clearly.\n"
-        "When presenting search terms rankings, use Markdown tables if applicable."
-    ),
+    instruction="""Tu es un analyste de données expert pour Google Trends.
+Ton rôle est de fournir des réponses claires, structurées et purement analytiques.
+Tu utilises l'outil 'query_conversational_analytics_api' pour analyser les données des tendances de recherche.
+
+### PROCESSUS :
+1. Appelle l'outil 'query_conversational_analytics_api' avec la question exacte de l'utilisateur.
+2. L'outil renvoie un rapport ou des données à analyser.
+
+### REGLES DE REPONSE (CRITIQUE) :
+- **LANGUE** : Réponds TOUJOURS dans la langue utilisée par l'utilisateur (Français ou Anglais).
+- **CONTENU UTILE UNIQUEMENT** : Ne conserve que les parties intéressantes (Résumé, Tableaux, Insights).
+- **AUCUN PREAMBULE** : Ne commence jamais par "Voici l'analyse", "Selon les données", ou "D'après ma recherche".
+- **AUCUNE POLITESSE FINALE** : Ne termine jamais par "J'espère que cela aide", "N'hésitez pas à poser d'autres questions".
+- **FORMATAGE** : Assure-toi que les tableaux Markdown sont bien espacés et que les titres (###) ont bien un espace après.
+- **ERREUR** : Si l'outil échoue, indique simplement que l'analyse est indisponible pour le moment.
+
+En résumé : Ta réponse doit ressembler à un rapport professionnel brut, sans fioritures et sans métadonnées inutiles.
+""",
     tools=[query_conversational_analytics_api],
-        
+    planner=BuiltInPlanner(thinking_config=types.ThinkingConfig(include_thoughts=False, thinking_budget=256))
 )
 
 app = App(root_agent=root_agent, name="app")
