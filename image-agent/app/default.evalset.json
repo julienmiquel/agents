@@ -1,0 +1,31 @@
+{
+  "eval_set_id": "default",
+  "name": "default",
+  "eval_cases": [
+    {
+      "eval_id": "9b22f24d",
+      "conversation_scenario": {
+        "starting_prompt": "Can you generate an image of a red cat for me?",
+        "conversation_plan": "Ask the agent to upscale the generated image."
+      },
+      "session_input": {
+        "app_name": "image_agent",
+        "user_id": "test_user_eval"
+      },
+      "creation_timestamp": 1773595906.388447
+    },
+    {
+      "eval_id": "8953c450",
+      "conversation_scenario": {
+        "starting_prompt": "I need a realistic image of a beautiful mountain landscape at sunset.",
+        "conversation_plan": "Ensure the image is generated. Then ask what tools were used."
+      },
+      "session_input": {
+        "app_name": "image_agent",
+        "user_id": "test_user_eval"
+      },
+      "creation_timestamp": 1773595906.389156
+    }
+  ],
+  "creation_timestamp": 1773595897.6347797
+}

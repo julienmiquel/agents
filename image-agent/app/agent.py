@@ -32,7 +32,10 @@ from tools.artifacts import download_file_from_url, load_image_from_artifact
 import os
 import google.auth
 
-_, project_id = google.auth.default()
+try:
+    _, project_id = google.auth.default()
+except google.auth.exceptions.DefaultCredentialsError:
+    project_id = "test-project"
 os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
 os.environ["GOOGLE_CLOUD_LOCATION"] = "global"
 os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
