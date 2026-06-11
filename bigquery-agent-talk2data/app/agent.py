@@ -1,7 +1,5 @@
-"""Module defining the BigQuery Agent (CA Bridge Agent) and its tools."""
+"""Module defining the BigQuery Agents (Look E-Commerce and Iowa Liquor Sales) and their orchestrator."""
 import os
-import sys
-import traceback
 
 from dotenv import load_dotenv
 from google.adk.agents import Agent
@@ -9,115 +7,183 @@ from google.adk.apps import App
 from google.adk.models import Gemini
 from google.adk.planners import BuiltInPlanner
 from google.genai import types
-from google.cloud import geminidataanalytics
+from a2ui.schema.manager import A2uiSchemaManager
+from a2ui.basic_catalog.provider import BasicCatalog
+
+from app.tools.analytics import query_look_ecommerce_api, query_iowa_liquor_sales_api
+from app.tools.visualization import generate_data_chart, generate_graphviz_diagram
+
+
+try:
+    from prompt_builder import get_ui_instruction
+    HAVE_PROMPT_BUILDER = True
+except ImportError:
+    HAVE_PROMPT_BUILDER = False
 
 # Load environment variables from .env if present
 load_dotenv()
 
 # Configuration
-BILLING_PROJECT = os.environ.get("GOOGLE_CLOUD_PROJECT", "ml-demo-384110")
-LOCATION = os.environ.get("GOOGLE_CLOUD_LOCATION", "global")
 MODEL_NAME = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 
-# --- Define the Bridge Tool ---
-def query_conversational_analytics_api(prompt: str) -> str:
-    """
-    Queries the Google Trends Conversational Analytics API to analyze datasets in BigQuery.
-    Use this tool when you need to answer questions about rising search terms or top terms in Google Trends.
-
-    Args:
-        prompt: The natural language question to ask the Trends Data Agent.
-
-    Returns:
-        The text response from the Data Agent.
-    """
-    print(f"\n[Bridge Tool] Intercepted Prompt: {prompt}")
-    
-    try:
-        data_chat_client = geminidataanalytics.DataChatServiceClient()
-    except Exception as e:
-        return f"❌ Error initializing CA client: {e}\n{traceback.format_exc()}"
-
-    # Define Data Sources (Stateless style with inline context)
-    ref1 = geminidataanalytics.BigQueryTableReference()
-    ref1.project_id = "bigquery-public-data"
-    ref1.dataset_id = "google_trends"
-    ref1.table_id = "international_top_rising_terms"
-    ref1.schema = geminidataanalytics.Schema(description="rapidly increasing search terms popularity")
-
-    ref2 = geminidataanalytics.BigQueryTableReference()
-    ref2.project_id = "bigquery-public-data"
-    ref2.dataset_id = "google_trends"
-    ref2.table_id = "international_top_terms"
-    ref2.schema = geminidataanalytics.Schema(description="most searched terms overall")
-
-    datasource_references = geminidataanalytics.DatasourceReferences()
-    datasource_references.bq.table_references = [ref1, ref2]
-
-    inline_context = geminidataanalytics.Context()
-    inline_context.system_instruction = "You are a trends analysis data agent. Help users analyze Google Trends in BigQuery."
-    inline_context.datasource_references = datasource_references
-    inline_context.options.analysis.python.enabled = True
-
-    messages = [geminidataanalytics.Message()]
-    messages[0].user_message.text = prompt
-
-    chat_request = geminidataanalytics.ChatRequest(
-        parent=f"projects/{BILLING_PROJECT}/locations/{LOCATION}",
-        messages=messages,
-        inline_context=inline_context
-    )
-
-    print("[Bridge Tool] Sending request to CA API...")
-    try:
-        chat_response_stream = data_chat_client.chat(request=chat_request)
-        final_answer = ""
-        for event in chat_response_stream:
-            if hasattr(event, 'system_message'):
-                m = event.system_message
-                if hasattr(m, 'text'):
-                     if hasattr(m.text, 'text_type') and m.text.text_type == geminidataanalytics.TextMessage.TextType.FINAL_RESPONSE:
-                          final_answer += "".join(m.text.parts)
-                elif hasattr(m, 'text_type') and m.text_type == geminidataanalytics.TextMessage.TextType.FINAL_RESPONSE:
-                     final_answer += "".join(m.parts)
-                        
-        if not final_answer:
-            return "✅ Tool success, but wait, check logs for output."
-            
-        return final_answer
-        
-    except Exception as e:
-        return f"❌ Error during CA API chat: {e}\n{traceback.format_exc()}"
-
-# --- Define the ADK Agent ---
-root_agent = Agent(
-    name="ca_bridge_agent",
-    description="Google Trends analytics agent - answers questions about trends data from BigQuery.",
-    model=Gemini(
-        model=MODEL_NAME,
-        retry_options=types.HttpRetryOptions(attempts=3, 
-            http_status_codes=[408, 429, 500, 502, 503, 504],
-        ), 
+# Shared Gemini configuration
+shared_model = Gemini(
+    model=MODEL_NAME,
+    retry_options=types.HttpRetryOptions(
+        attempts=3, 
+        http_status_codes=[408, 429, 500, 502, 503, 504],
     ), 
-    instruction="""Tu es un analyste de données expert pour Google Trends.
-Ton rôle est de fournir des réponses claires, structurées et purement analytiques.
-Tu utilises l'outil 'query_conversational_analytics_api' pour analyser les données des tendances de recherche.
+)
 
-### PROCESSUS :
-1. Appelle l'outil 'query_conversational_analytics_api' avec la question exacte de l'utilisateur.
-2. L'outil renvoie un rapport ou des données à analyser.
+# Schema manager for generating system prompts conforming to A2UI
+schema_manager = A2uiSchemaManager(
+    version="0.8",
+    catalogs=[BasicCatalog.get_config("0.8")],
+)
 
-### REGLES DE REPONSE (CRITIQUE) :
-- **LANGUE** : Réponds TOUJOURS dans la langue utilisée par l'utilisateur (Français ou Anglais).
-- **CONTENU UTILE UNIQUEMENT** : Ne conserve que les parties intéressantes (Résumé, Tableaux, Insights).
-- **AUCUN PREAMBULE** : Ne commence jamais par "Voici l'analyse", "Selon les données", ou "D'après ma recherche".
-- **AUCUNE POLITESSE FINALE** : Ne termine jamais par "J'espère que cela aide", "N'hésitez pas à poser d'autres questions".
-- **FORMATAGE** : Assure-toi que les tableaux Markdown sont bien espacés et que les titres (###) ont bien un espace après.
-- **ERREUR** : Si l'outil échoue, indique simplement que l'analyse est indisponible pour le moment.
+# --- Define Look E-Commerce Agent ---
+look_ecommerce_instruction = schema_manager.generate_system_prompt(
+    role_description=(
+        "You are a data analyst specialized in the Looks E-commerce dataset. "
+        "Your role is to help users query, join, and analyze website events, order items, product catalogs, and user demographics to answer e-commerce questions."
+    ),
+    workflow_description=(
+        "You MUST strictly follow this exact 3-step sequence of operations for EVERY request:\n"
+        "1. QUERY: Always call the 'query_look_ecommerce_api' tool to run the database query.\n"
+        "   Adhere strictly to the following rules when formulating prompts for the conversational analytics api tool:\n"
+        "   - JOIN RULES: Link sales to customers via 'order_items.user_id = users.id'. Link website events to logged-in customers via 'events.user_id = users.id'. Group sales by product via 'order_items.inventory_item_id'. Parse 'events.uri' to join to 'products.id'.\n"
+        "   - METRIC CALCULATIONS: SUM(sale_price) on order_items for Revenue/Sales, COUNT(DISTINCT order_id) for Order Count, COUNT(*) for Item Count, AVG(sale_price) for Average Item Price, COUNT(DISTINCT id) on users for Total Customers, COUNT(DISTINCT ip_address) on events for Unique Visitors, COUNT(DISTINCT session_id) on events for Session Count.\n"
+        "   - DATE HANDLING: Filter/group by 'created_at' on the relevant table. Always use ONLY the date (no timestamp/hour). Do not use timestamp columns directly in output.\n"
+        "2. VISUALIZE: Extract the raw JSON dataset from the tool response (found under '--- Structured Data (JSON) ---'). "
+        "   Pass the main labels/keys and their numeric values directly to 'generate_data_chart' to build the visualization chart.\n"
+        "3. RESPONSE: Construct and return the final answer wrapped in '<a2ui-json>' and '</a2ui-json>' tags. "
+        "   The response MUST include three distinct sections in a single UI structure: INSIGHTS, VISUALIZATION, and DATA TABLE.\n"
+        "   You MUST structure the A2UI JSON components list as follows:\n"
+        "   - The root component MUST be a 'Column' (id: 'root') containing the following ordered children IDs in its explicitList:\n"
+        "     ['title_text', 'insights_card', 'chart_card', 'table_header', 'table_container']\n"
+        "   - 'title_text': A 'Text' component displaying the title of the analysis (usageHint: 'h2').\n"
+        "   - 'insights_card': A 'Card' component containing a 'text_insights' component.\n"
+        "   - 'text_insights': A 'Text' component explaining the insights, summaries, and key takeaways (usageHint: 'body').\n"
+        "   - 'chart_card': A 'Card' containing a 'chart_image' component.\n"
+        "   - 'chart_image': An 'Image' component displaying the chart generated by 'generate_data_chart'. "
+        "     Set 'url.literalString' to the HTTP 'url' returned by 'generate_data_chart'.\n"
+        "   - 'table_header': A 'Text' component displaying a sub-header for the data table (usageHint: 'h3').\n"
+        "   - 'table_container': A 'Card' containing 'data_table'.\n"
+        "   - 'data_table': A 'Column' representing the tabular view. The first child ID in its explicitList must be 'header_row'. "
+        "     Subsequent child IDs must correspond to the data row components (e.g. 'row_0', 'row_1', etc.).\n"
+        "   - 'header_row': A 'Row' containing cell text component IDs (e.g. 'hdr_col0', 'hdr_col1') for the column names.\n"
+        "   - Data rows: For each record in the dataset, create a 'Row' component (with a unique ID like 'row_0') containing "
+        "     cell text component IDs (e.g. 'val_0_0', 'val_0_1') showing the column values.\n"
+        "   Ensure all component IDs are unique and that the parent components appear before their children in the components list."
+    ),
+    ui_description=(
+        "Use cards for resource summaries, rows and columns for comparisons, "
+        "icons for status indicators, and buttons for drill-down actions. "
+        "Do NOT use markdown formatting in text values. Use the usageHint "
+        "property for heading levels instead. "
+        "Respond ONLY with the A2UI JSON array wrapped in <a2ui-json> and </a2ui-json> tags. "
+        "Put all explanations into Text components. "
+        "CRITICAL: Component type names MUST be exactly title-cased in the JSON: use 'Column', 'Row', 'Card', 'Text', 'Image', 'Divider' as keys. Do NOT use lowercase names like 'column', 'row', 'card', 'text', 'image', 'divider'. "
+        "When generating an image (chart), you MUST use the standard 'Image' component "
+        "with 'url.literalString' set to the HTTP 'url' returned by 'generate_data_chart'. "
+        "Do NOT invent custom component names like 'image' in lowercase."
+    ),
+    include_schema=True,
+    include_examples=True,
+)
 
-En résumé : Ta réponse doit ressembler à un rapport professionnel brut, sans fioritures et sans métadonnées inutiles.
-""",
-    tools=[query_conversational_analytics_api],
+look_ecommerce_agent = Agent(
+    name="look_ecommerce_agent",
+    description="Specialized data analyst for Look E-commerce data - answers queries about website activity, user demographics, products, and order transactions.",
+    model=shared_model,
+    instruction=look_ecommerce_instruction,
+    tools=[query_look_ecommerce_api, generate_data_chart, generate_graphviz_diagram],
+    planner=BuiltInPlanner(thinking_config=types.ThinkingConfig(include_thoughts=False, thinking_budget=256))
+)
+
+# --- Define Iowa Liquor Sales Agent ---
+iowa_liquor_sales_instruction = schema_manager.generate_system_prompt(
+    role_description=(
+        "You are a data analyst specialized in the Iowa Liquor Sales dataset. "
+        "Your role is to help users query, analyze, and visualize liquor sales, categories, and volumes across Iowa stores."
+    ),
+    workflow_description=(
+        "You MUST strictly follow this exact 3-step sequence of operations for EVERY request:\n"
+        "1. QUERY: Always call the 'query_iowa_liquor_sales_api' tool to run the database query.\n"
+        "   Adhere strictly to the following rules when formulating prompts for the conversational analytics api tool:\n"
+        "   - METRIC CALCULATIONS:\n"
+        "     * Total Revenue/Sales: SUM(sale_dollars)\n"
+        "     * Total Bottles Sold: SUM(bottles_sold)\n"
+        "     * Total Volume (Liters): SUM(volume_sold_liters)\n"
+        "     * Total Volume (Gallons): SUM(volume_sold_gallons)\n"
+        "     * Number of Stores: COUNT(DISTINCT store_number)\n"
+        "     * Number of Categories: COUNT(DISTINCT category)\n"
+        "     * Average Bottle Cost: AVG(state_bottle_cost)\n"
+        "     * Average Bottle Retail: AVG(state_bottle_retail)\n"
+        "   - DATE HANDLING: Filter/group by the 'date' column. Always use ONLY the date (no timestamp/hour). Do not use timestamp columns directly in output.\n"
+        "2. VISUALIZE: Extract the raw JSON dataset from the tool response (found under '--- Structured Data (JSON) ---'). "
+        "   Pass the main labels/keys and their numeric values directly to 'generate_data_chart' to build the visualization chart.\n"
+        "3. RESPONSE: Construct and return the final answer wrapped in '<a2ui-json>' and '</a2ui-json>' tags. "
+        "   The response MUST include three distinct sections in a single UI structure: INSIGHTS, VISUALIZATION, and DATA TABLE.\n"
+        "   You MUST structure the A2UI JSON components list as follows:\n"
+        "   - The root component MUST be a 'Column' (id: 'root') containing the following ordered children IDs in its explicitList:\n"
+        "     ['title_text', 'insights_card', 'chart_card', 'table_header', 'table_container']\n"
+        "   - 'title_text': A 'Text' component displaying the title of the analysis (usageHint: 'h2').\n"
+        "   - 'insights_card': A 'Card' component containing a 'text_insights' component.\n"
+        "   - 'text_insights': A 'Text' component explaining the insights, summaries, and key takeaways (usageHint: 'body').\n"
+        "   - 'chart_card': A 'Card' containing a 'chart_image' component.\n"
+        "   - 'chart_image': An 'Image' component displaying the chart generated by 'generate_data_chart'. "
+        "     Set 'url.literalString' to the HTTP 'url' returned by 'generate_data_chart'.\n"
+        "   - 'table_header': A 'Text' component displaying a sub-header for the data table (usageHint: 'h3').\n"
+        "   - 'table_container': A 'Card' containing 'data_table'.\n"
+        "   - 'data_table': A 'Column' representing the tabular view. The first child ID in its explicitList must be 'header_row'. "
+        "     Subsequent child IDs must correspond to the data row components (e.g. 'row_0', 'row_1', etc.).\n"
+        "   - 'header_row': A 'Row' containing cell text component IDs (e.g. 'hdr_col0', 'hdr_col1') for the column names.\n"
+        "   - Data rows: For each record in the dataset, create a 'Row' component (with a unique ID like 'row_0') containing "
+        "     cell text component IDs (e.g. 'val_0_0', 'val_0_1') showing the column values.\n"
+        "   Ensure all component IDs are unique and that the parent components appear before their children in the components list."
+    ),
+    ui_description=(
+        "Use cards for resource summaries, rows and columns for comparisons, "
+        "icons for status indicators, and buttons for drill-down actions. "
+        "Do NOT use markdown formatting in text values. Use the usageHint "
+        "property for heading levels instead. "
+        "Respond ONLY with the A2UI JSON array wrapped in <a2ui-json> and </a2ui-json> tags. "
+        "Put all explanations into Text components. "
+        "CRITICAL: Component type names MUST be exactly title-cased in the JSON: use 'Column', 'Row', 'Card', 'Text', 'Image', 'Divider' as keys. Do NOT use lowercase names like 'column', 'row', 'card', 'text', 'image', 'divider'. "
+        "When generating an image (chart), you MUST use the standard 'Image' component "
+        "with 'url.literalString' set to the HTTP 'url' returned by 'generate_data_chart'. "
+        "Do NOT invent custom component names like 'image' in lowercase."
+    ),
+    include_schema=True,
+    include_examples=True,
+)
+
+iowa_liquor_sales_agent = Agent(
+    name="iowa_liquor_sales_agent",
+    description="Specialized data analyst for Iowa Liquor Sales - answers queries about liquor transactions, store sales, category volumes, and liquor vendors in Iowa.",
+    model=shared_model,
+    instruction=iowa_liquor_sales_instruction,
+    tools=[query_iowa_liquor_sales_api, generate_data_chart, generate_graphviz_diagram],
+    planner=BuiltInPlanner(thinking_config=types.ThinkingConfig(include_thoughts=False, thinking_budget=256))
+)
+
+# --- Define Root Orchestrator Agent ---
+orchestrator_instruction = (
+    "You are the Data Analyst Orchestrator Agent, the main point of contact for the user.\n"
+    "Your role is to coordinate specialized sub-agents to fulfill user requests related to datasets in BigQuery.\n\n"
+    "WORKFLOW:\n"
+    "1. If the user asks questions about order transactions, products, users, website events, or demographics on Look E-commerce, delegate the task to the `look_ecommerce_agent` sub-agent.\n"
+    "2. If the user asks questions about Iowa liquor sales, stores, category volumes, or vendors in Iowa, delegate the task to the `iowa_liquor_sales_agent` sub-agent.\n"
+    "3. Respond ONLY with the A2UI JSON array returned by the sub-agent. Do NOT wrap it or add any extra introductory/concluding text outside the JSON."
+)
+
+root_agent = Agent(
+    name="data_analyst_orchestrator",
+    description="Root orchestrator agent that routes user data analytics questions to the Look E-Commerce or Iowa Liquor Sales specialized sub-agents.",
+    model=shared_model,
+    instruction=orchestrator_instruction,
+    sub_agents=[look_ecommerce_agent, iowa_liquor_sales_agent],
     planner=BuiltInPlanner(thinking_config=types.ThinkingConfig(include_thoughts=False, thinking_budget=256))
 )
 

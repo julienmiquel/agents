@@ -9,7 +9,7 @@ dependencies = [
     "google-adk>=1.15.0,<2.0.0",
     "opentelemetry-instrumentation-google-genai==0.7b0",
     "google-cloud-logging>=3.12.0,<4.0.0",
-    "google-cloud-aiplatform[evaluation,agent-engines]==1.130.0",
+    "google-cloud-aiplatform[evaluation,agent-engines]>=1.132.0,<2.0.0",
     "google-cloud-geminidataanalytics",
     "google-genai",
     "protobuf>=6.31.1,<7.0.0",
@@ -17,6 +17,8 @@ dependencies = [
     "requests",
     "python-dotenv",
     "pydantic>=2.0.0",
+    "a2ui-agent-sdk",
+    "Pillow>=10.0.0",
 ]
 requires-python = ">=3.10,<3.14"
 

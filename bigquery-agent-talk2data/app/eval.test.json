@@ -1,12 +1,12 @@
 [
   {
-    "prompt": "What are the top 3 search terms globally?",
-    "expected_response": "The top search terms are...",
+    "prompt": "What is the total sales in dollars for Iowa liquor in 2025?",
+    "expected_response": "The total sales in 2025...",
     "expected_tool_calls": [
       {
         "name": "query_conversational_analytics_api",
         "args": {
-          "prompt": "What are the top 3 search terms globally?"
+          "prompt": "What is the total sales in dollars for Iowa liquor in 2025?"
         }
       }
     ]

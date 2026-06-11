@@ -1,0 +1,91 @@
+{
+  "open_positions": [
+    {
+      "id": "POS-001",
+      "title": "Embedded C++ Engineer",
+      "sector": "Automotive",
+      "location": "Munich",
+      "description": "Urgent need for an Embedded C++ Engineer for an Automotive client in Munich. Requires experience with C++, RTOS, and automotive protocols."
+    },
+    {
+      "id": "POS-002",
+      "title": "Java Cloud Architect",
+      "sector": "IT",
+      "location": "Paris",
+      "description": "Looking for a Java Cloud Architect with AWS experience."
+    },
+    {
+      "id": "POS-003",
+      "title": "Senior Magento Developer",
+      "sector": "E-commerce",
+      "location": "Paris",
+      "description": "I have a new urgent need for a Senior Magento Developer for an E-commerce client in Paris."
+    }
+  ],
+  "consultants": [
+    {
+      "id": "CONS-001",
+      "name": "Max Mustermann",
+      "skills": [
+        "C++",
+        "Embedded",
+        "RTOS",
+        "CAN"
+      ],
+      "location": "Munich",
+      "availability": "Immediate",
+      "experience_years": 5,
+      "cv_text": "Experienced Embedded C++ Engineer. 5 years in automotive sector. Worked on RTOS and CAN bus."
+    },
+    {
+      "id": "CONS-002",
+      "name": "John Doe",
+      "skills": [
+        "Java",
+        "Spring",
+        "AWS"
+      ],
+      "location": "Paris",
+      "availability": "In 2 weeks",
+      "experience_years": 7,
+      "cv_text": "Java Cloud Architect. Expert in Spring Boot and AWS."
+    },
+    {
+      "id": "CONS-003",
+      "name": "Anna Schmidt",
+      "skills": [
+        "C++",
+        "Linux"
+      ],
+      "location": "Munich",
+      "availability": "Immediate",
+      "experience_years": 3,
+      "cv_text": "C++ developer with Linux experience."
+    },
+    {
+      "id": "CONS-004",
+      "name": "Mr Smith",
+      "skills": [
+        "Magento",
+        "PHP",
+        "E-commerce"
+      ],
+      "location": "Paris",
+      "availability": "Immediate",
+      "experience_years": 8,
+      "cv_text": "Senior E-commerce Consultant with 8 years of Magento / PHP experience. Expert in Magento 2, PHP, and architecture."
+    },
+    {
+      "id": "CONS-005",
+      "name": "Sophie Laurent",
+      "skills": [
+        "Magento",
+        "PHP"
+      ],
+      "location": "Paris",
+      "availability": "Immediate",
+      "experience_years": 4,
+      "cv_text": "Magento developer with 4 years of experience in PHP/Magento e-commerce sites."
+    }
+  ]
+}

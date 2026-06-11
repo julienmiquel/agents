@@ -37,6 +37,9 @@ os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
 os.environ["GOOGLE_CLOUD_LOCATION"] = "global"
 os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
 
+# Configuration
+MODEL_NAME = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+
 system_instructions ="""
 You are the Google ADK Image Agent. Your purpose is to assist users in generating and upscaling images.
 
@@ -66,7 +69,7 @@ Interaction Style:
 root_agent = Agent(
     name="image_agent",
     model=Gemini(
-        model="gemini-3-flash-preview",
+        model=MODEL_NAME,
         retry_options=types.HttpRetryOptions(attempts=3),
     ),
     instruction=system_instructions,

@@ -1,0 +1,90 @@
+{
+  "market_benchmarks": [
+    {
+      "role": "DevOps Engineer",
+      "experience_years": 5,
+      "location": "Lille",
+      "average_tjm": 620,
+      "min_tjm": 580,
+      "max_tjm": 670
+    },
+    {
+      "role": "DevOps Engineer",
+      "experience_years": 5,
+      "location": "Paris",
+      "average_tjm": 720,
+      "min_tjm": 680,
+      "max_tjm": 800
+    },
+    {
+      "role": "Magento Tech Lead",
+      "experience_years": 5,
+      "location": "Paris",
+      "average_tjm": 700,
+      "min_tjm": 650,
+      "max_tjm": 780
+    },
+    {
+      "role": "Magento Developer",
+      "experience_years": 3,
+      "location": "Lille",
+      "average_tjm": 500,
+      "min_tjm": 450,
+      "max_tjm": 550
+    },
+    {
+      "role": "Magento Developer",
+      "experience_years": 5,
+      "location": "Lille",
+      "average_tjm": 600,
+      "min_tjm": 550,
+      "max_tjm": 660
+    },
+    {
+      "role": "Magento Developer",
+      "experience_years": 5,
+      "location": "Paris",
+      "average_tjm": 720,
+      "min_tjm": 670,
+      "max_tjm": 800
+    },
+    {
+      "role": "Drupal Expert",
+      "experience_years": 7,
+      "location": "Paris",
+      "average_tjm": 800,
+      "min_tjm": 750,
+      "max_tjm": 900
+    }
+  ],
+  "client_historical_pricing": [
+    {
+      "client_name": "Decathlon",
+      "role": "DevOps Engineer",
+      "average_tjm_paid": 650,
+      "notes": "Accepts a premium for Senior Cloud roles that accelerate their digital transformation. Standard margin tolerance is high for strategic modernizations."
+    },
+    {
+      "client_name": "Decathlon",
+      "role": "Magento Developer",
+      "average_tjm_paid": 610,
+      "notes": "Prefers stable long-term staffing. Margin focus is medium."
+    },
+    {
+      "client_name": "Auchan",
+      "role": "DevOps Engineer",
+      "average_tjm_paid": 610,
+      "notes": "Cost-sensitive client, usually negotiates close to regional market average."
+    },
+    {
+      "client_name": "Leroy Merlin",
+      "role": "Drupal Expert",
+      "average_tjm_paid": 780,
+      "notes": "Values deep architectural expertise. Demands senior open-source contributors."
+    }
+  ],
+  "approvers": {
+    "agency_director": "Thomas E. (Agency Director - Lille)",
+    "sales_director": "Sophie M. (Sales Director - Retail & E-commerce)"
+  }
+}

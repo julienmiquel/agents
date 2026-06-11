@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google ADK Agents Explorer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon"><i class="fa-solid fa-brain-circuit"></i></span>
+                    <span class="logo-text">ADK Explorer</span>
+                </div>
+            </div>
+            
+            <div class="section-title">Available Agents</div>
+            <div class="agents-list" id="agents-list">
+                <!-- Loaded dynamically -->
+                <div class="loading-spinner-container">
+                    <div class="spinner"></div>
+                    <span>Loading agents...</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="profile-avatar"><i class="fa-solid fa-circle-user"></i></div>
+                    <div class="profile-info">
+                        <span class="profile-name">Julien Miquel</span>
+                        <span class="profile-role">Developer</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="chat-container">
+            <!-- Header -->
+            <header class="chat-header" id="chat-header">
+                <div class="header-placeholder">
+                    <h2>Select an agent from the sidebar to start exploring.</h2>
+                    <p>Interact with staffing assistants, recruiters, knowledge graphs, pricing analysts, and more.</p>
+                </div>
+            </header>
+
+            <!-- Conversation Window -->
+            <section class="messages-window" id="messages-window">
+                <div class="welcome-screen" id="welcome-screen">
+                    <div class="welcome-icon"><i class="fa-solid fa-network-wired"></i></div>
+                    <h1>Google Agent Development Kit (ADK)</h1>
+                    <p>Select an agent to begin an interactive, high-fidelity reasoning session.</p>
+                    <div class="quick-cards" id="quick-cards">
+                        <!-- Filled depending on chosen agent -->
+                    </div>
+                </div>
+                <div class="messages-list" id="messages-list" style="display: none;">
+                    <!-- Messages loaded dynamically -->
+                </div>
+            </section>
+
+            <!-- Chat Input / HITL form -->
+            <footer class="chat-footer" id="chat-footer" style="display: none;">
+                <!-- Streaming active thought indicators -->
+                <div class="stream-indicators" id="stream-indicators" style="display: none;">
+                    <div class="typing-indicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span id="indicator-text">Agent is thinking...</span>
+                </div>
+
+                <!-- Normal chat input -->
+                <form class="input-form" id="input-form">
+                    <input type="text" id="user-input" placeholder="Type a message or request..." autocomplete="off">
+                    <button type="submit" class="send-btn" id="send-btn">
+                        <i class="fa-solid fa-arrow-up"></i>
+                    </button>
+                </form>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Script -->
+    <script src="app.js"></script>
+</body>
+</html>

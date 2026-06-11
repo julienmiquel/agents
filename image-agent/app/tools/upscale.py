@@ -113,11 +113,11 @@ async def upscale_image(
         
         # Save back to artifacts
         part = types.Part(inline_data=types.Blob(mime_type="image/png", data=generated_image_bytes))
-        logger.info(f"Step [upscale_image]: Saving result '{output_filename}' to artifacts.")
-        await tool_context.save_artifact(filename=output_filename, artifact=part)
+        from tools.artifacts import upload_and_save_artifact
+        gcs_url = await upload_and_save_artifact(tool_context, output_filename, part)
         
-        logger.info(f"Step [upscale_image]: Completed successfully. Output: {output_filename}")
-        return f"Your image has been upscaled to `{output_filename}`."
+        logger.info(f"Step [upscale_image]: Completed successfully. Output: {output_filename} at {gcs_url}")
+        return f"Your image has been upscaled to `{output_filename}`. Access it here: {gcs_url}"
 
     except Exception as e:
         logger.error(f"Error upscaling image: {e}")

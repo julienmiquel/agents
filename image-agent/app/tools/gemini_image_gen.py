@@ -68,9 +68,11 @@ async def generate_image_gemini(tool_context: ToolContext, prompt: str, aspect_r
                     mime_type="image/png"  # Assuming PNG for now
                 )
                 
-                await tool_context.save_artifact(filename, image_part)
-                generated_filenames.append(filename)
-                logger.info(f"Saved artifact: {filename}")
+                from tools.artifacts import upload_and_save_artifact
+                gcs_url = await upload_and_save_artifact(tool_context, filename, image_part)
+                
+                generated_filenames.append(f"{filename} (URL: {gcs_url})")
+                logger.info(f"Saved artifact: {filename} to {gcs_url}")
                 
             if part.text:
                 # Log thought process or partial text

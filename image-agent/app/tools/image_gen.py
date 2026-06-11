@@ -62,10 +62,11 @@ async def generate_image(tool_context: ToolContext, prompt: str, aspect_ratio: s
         report_artifact = types.Part.from_bytes(
             data=image_bytes, mime_type="image/png"
         )
-        await tool_context.save_artifact(filename, report_artifact)
+        from tools.artifacts import upload_and_save_artifact
+        gcs_url = await upload_and_save_artifact(tool_context, filename, report_artifact)
         
-        logger.info(f"Image generated successfully and saved as artifact: {filename}")
-        return f"Image generated successfully and saved as artifact: {filename}"
+        logger.info(f"Image generated successfully and saved as artifact: {filename}. Public URL: {gcs_url}")
+        return f"Image generated successfully and saved as artifact: {filename}. Access it here: {gcs_url}"
         
     except Exception as e:
         logger.error(f"Error generating image with {model_name}: {str(e)}", exc_info=True)

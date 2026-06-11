@@ -196,3 +196,55 @@ async def load_image_from_artifact(artifact_name: str, tool_context: ToolContext
     except Exception as e:
         logger.error(f"Error loading artifact: {e}")
         return ""
+
+async def upload_and_save_artifact(tool_context: ToolContext, filename: str, part: types.Part) -> str:
+    """Saves an artifact locally and uploads it to Google Cloud Storage.
+    
+    Args:
+        tool_context: The ADK tool context.
+        filename: The name of the file to save.
+        part: The Gemini Part object containing the data.
+        
+    Returns:
+        The GCS public URL if successful, otherwise empty string.
+    """
+    # 1. Save artifact locally in ADK session
+    await tool_context.save_artifact(filename, part)
+    
+    # 2. Upload to GCS
+    try:
+        bucket_name = os.getenv("GOOGLE_CLOUD_STORAGE_BUCKET", "ml-demo-384110-agent-engine")
+        if bucket_name.startswith("gs://"):
+            bucket_name = bucket_name[5:]
+            
+        client = storage.Client()
+        bucket = client.bucket(bucket_name)
+        
+        blob_name = f"image_agent_artifacts/{uuid.uuid4().hex[:8]}_{filename}"
+        blob = bucket.blob(blob_name)
+        
+        # Extract bytes from Part
+        if hasattr(part, 'inline_data') and part.inline_data:
+            data = part.inline_data.data
+            if isinstance(data, str):
+                image_bytes = base64.b64decode(data)
+            else:
+                image_bytes = data
+        else:
+            logger.warning(f"Could not extract bytes from part for {filename}")
+            return ""
+            
+        mime_type, _ = mimetypes.guess_type(filename)
+        if not mime_type:
+            if hasattr(part, 'inline_data') and hasattr(part.inline_data, 'mime_type'):
+                mime_type = part.inline_data.mime_type
+            else:
+                mime_type = "application/octet-stream"
+                
+        blob.upload_from_string(image_bytes, content_type=mime_type)
+        gcs_url = f"https://storage.googleapis.com/{bucket_name}/{blob_name}"
+        logger.info(f"Successfully uploaded {filename} to {gcs_url}")
+        return gcs_url
+    except Exception as e:
+        logger.error(f"Failed to upload {filename} to GCS: {e}")
+        return ""

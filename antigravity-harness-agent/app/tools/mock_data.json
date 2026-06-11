@@ -1,0 +1,77 @@
+{
+  "comparisons": [
+    {
+      "feature": "Execution Runtime",
+      "interactions_api": "Remote Secure Linux Sandbox (ephemeral, hosted by Google)",
+      "sdk": "Local computer / Dedicated GCP environments (e.g. GKE, Cloud Run)"
+    },
+    {
+      "feature": "Import Statement",
+      "interactions_api": "from google import genai",
+      "sdk": "from google.antigravity import Agent, LocalAgentConfig"
+    },
+    {
+      "feature": "Asynchronous Support",
+      "interactions_api": "Synchronous call block (client.interactions.create)",
+      "sdk": "Native async/await support (requires asyncio run loop)"
+    },
+    {
+      "feature": "Primary Model",
+      "interactions_api": "Gemini 3.5 Flash (antigravity-preview-05-2026)",
+      "sdk": "Any supported Gemini model via LocalAgentConfig"
+    },
+    {
+      "feature": "State & History Management",
+      "interactions_api": "Managed by the remote sandbox platform session",
+      "sdk": "Local context state / Custom session database adapters"
+    },
+    {
+      "feature": "Advanced Capabilities",
+      "interactions_api": "Autonomous loop (plan, action, observe) in sandbox",
+      "sdk": "Dynamic sub-agents, hooks JSON tracking at every step"
+    },
+    {
+      "feature": "Multimodal Input Support",
+      "interactions_api": "Supported (Text and Base64-encoded images only)",
+      "sdk": "Full model multimodal support (Images, Audio, Video, etc.)"
+    },
+    {
+      "feature": "Generation Parameters in Preview",
+      "interactions_api": "❌ Not supported (temperature, top_p, structured outputs)",
+      "sdk": "✔️ Supported (fully customizable in LocalAgentConfig)"
+    }
+  ],
+  "snippets": {
+    "interactions_api": {
+      "basic": "from google import genai\n\nclient = genai.Client()\n\n# Call the remote Antigravity Harness runner to run an autonomous loop\ninteraction = client.interactions.create(\n    agent=\"antigravity-preview-05-2026\",\n    input=\"Lis Hacker News, résume les 10 meilleurs articles et sauvegarde le résultat en PDF.\",\n    extra_body={\"environment\": \"remote\"},\n)\n\nprint(interaction.output_text)\n",
+      "linux_sandbox": "from google import genai\nimport base64\n\nclient = genai.Client()\n\n# Reading an image to pass as a base64 encoded multimodal input to the sandbox\nwith open(\"input_diagram.png\", \"rb\") as img_file:\n    base64_image = base64.b64encode(img_file.read()).decode('utf-8')\n\ninteraction = client.interactions.create(\n    agent=\"antigravity-preview-05-2026\",\n    input=[\n        \"Débuggue ce script représenté dans le schéma et exécute-le pour tester le résultat.\",\n        {\"inline_data\": {\"mime_type\": \"image/png\", \"data\": base64_image}}\n    ],\n    extra_body={\"environment\": \"remote\"}  # Activates the remote secure Linux sandbox\n)\n\nprint(\"Sandbox Execution Output:\")\nprint(interaction.output_text)\n"
+    },
+    "sdk": {
+      "basic": "import asyncio\nfrom google.antigravity import Agent, LocalAgentConfig\n\nasync def main():\n    # Initialize local agent configuration (uses local runtime same as Antigravity 2.0)\n    config = LocalAgentConfig()\n    async with Agent(config) as agent:\n        response = await agent.chat(\"Quels sont les fichiers dans le répertoire courant ?\")\n        print(await response.text())\n\nif __name__ == \"__main__\":\n    asyncio.run(main())\n",
+      "subagents": "import asyncio\nfrom google.antigravity import Agent, LocalAgentConfig\n\nasync def main():\n    # Configuration that permits dynamic parallel sub-agents\n    config = LocalAgentConfig(enable_subagents=True)\n    async with Agent(config) as main_agent:\n        # Main agent will automatically spawn subagents to analyze different parts concurrently\n        response = await main_agent.chat(\n            \"Analyse ce projet de code Python. Repère les goulots d'étranglement de performance \"\n            \"et propose des refactorisations en parallèle pour chaque module.\"\n        )\n        print(await response.text())\n\nif __name__ == \"__main__\":\n    asyncio.run(main())\n",
+      "hooks": "import asyncio\nimport json\nfrom google.antigravity import Agent, LocalAgentConfig\n\ndef custom_action_hook(step_state):\n    \"\"\"Callback executed at each reasoning loop step to intercept actions.\"\"\"\n    print(f\"[HOOK] Current phase: {step_state.get('phase')}\")\n    print(f\"[HOOK] Tool calls selected: {json.dumps(step_state.get('actions', []))}\")\n\nasync def main():\n    # Register custom JSON hooks in configuration to intercept behavior\n    config = LocalAgentConfig(\n        hooks={\n            \"on_step_start\": custom_action_hook,\n            \"on_tool_call\": lambda details: print(f\"[HOOK] Invoking tool: {details.get('name')}\")\n        }\n    )\n    async with Agent(config) as agent:\n        response = await agent.chat(\"Récupère le statut du cluster Kubernetes.\")\n        print(await response.text())\n\nif __name__ == \"__main__\":\n    asyncio.run(main())\n"
+    }
+  },
+  "migration_checklist": [
+    {
+      "step": 1,
+      "task": "Déménager du CLI déprécié vers le SDK Antigravity.",
+      "rationale": "Le support de Jetski-CLI a été déprécié en Avril 2026. L'intégration native s'effectue désormais via `google.antigravity` dans le code d'application ou via l'API Interactions pour le cloud."
+    },
+    {
+      "step": 2,
+      "task": "Remplacer l'initialisation du client traditionnel par le context manager asynchrone.",
+      "rationale": "L'agent SDK d'Antigravity exige un context manager asynchrone `async with Agent(config) as agent:` pour assurer le nettoyage correct des ressources de runtime."
+    },
+    {
+      "step": 3,
+      "task": "Ajuster les appels de chat en asynchrone.",
+      "rationale": "La méthode `agent.chat` est asynchrone et doit être préfixée de `await`. Le texte de la réponse s'extrait également de manière asynchrone : `await response.text()`."
+    },
+    {
+      "step": 4,
+      "task": "Valider que les variables d'environnement GCP sont configurées.",
+      "rationale": "Le SDK s'appuie sur Vertex AI en arrière-plan. Vérifiez que `GOOGLE_CLOUD_PROJECT` et `GOOGLE_CLOUD_LOCATION` sont définies pour diriger les requêtes."
+    }
+  ]
+}

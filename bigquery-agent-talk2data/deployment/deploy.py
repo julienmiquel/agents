@@ -11,6 +11,28 @@ from vertexai.preview.reasoning_engines import AdkApp
 # Add current working directory to sys.path so 'app' module can be found
 sys.path.append(os.getcwd())
 
+from unittest.mock import MagicMock
+
+# Mock a2ui dependencies since they are not available in the local environment
+class MockA2uiSchemaManager:
+    def __init__(self, *args, **kwargs):
+        pass
+    def generate_system_prompt(self, *args, **kwargs):
+        return "Mocked System Prompt"
+
+class MockBasicCatalog:
+    @staticmethod
+    def get_config(*args, **kwargs):
+        return {}
+
+a2ui_schema_manager = MagicMock()
+a2ui_schema_manager.A2uiSchemaManager = MockA2uiSchemaManager
+sys.modules['a2ui.schema.manager'] = a2ui_schema_manager
+
+a2ui_basic_catalog_provider = MagicMock()
+a2ui_basic_catalog_provider.BasicCatalog = MockBasicCatalog
+sys.modules['a2ui.basic_catalog.provider'] = a2ui_basic_catalog_provider
+
 # We import root_agent from app.agent
 from app.agent import root_agent
 
@@ -88,12 +110,15 @@ def create(args) -> None:
         adk_app,
         display_name=root_agent.name,
         requirements=[
-            "google-adk>=1.15.0",
-            "google-cloud-aiplatform[agent-engines]==1.130.0",
+            "google-adk==1.33.0",
+            "google-cloud-aiplatform[agent-engines]>=1.132.0,<2.0.0",
             "google-genai>=1.5.0",
             "google-auth",
             "requests",
             "google-cloud-geminidataanalytics",
+            "a2ui-agent-sdk",
+            "Pillow>=10.0.0",
+            "google-cloud-bigquery",
         ],
         extra_packages=["app"],
     )

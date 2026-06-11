@@ -7,6 +7,13 @@ from vertexai.preview import reasoning_engines
 # Load environment variables from .env
 load_dotenv()
 
+vertexai.init(
+    project=os.environ.get("GOOGLE_CLOUD_PROJECT", "ml-demo-384110"),
+    location=os.environ.get("GOOGLE_CLOUD_LOCATION", "europe-west1")
+)
+
+ENGINE_ID = os.environ.get("REASONING_ENGINE")
+
 if not ENGINE_ID:
     print("❌ Error: REASONING_ENGINE environment variable is not set or empty in .env.")
     print("Please set it to the resource name of your deployed agent.")
