@@ -23,9 +23,19 @@ from app.app_utils.telemetry import setup_telemetry
 from app.app_utils.typing import Feedback
 
 setup_telemetry()
-_, project_id = google.auth.default()
-logging_client = google_cloud_logging.Client()
-logger = logging_client.logger(__name__)
+try:
+    _, project_id = google.auth.default()
+    logging_client = google_cloud_logging.Client()
+    logger = logging_client.logger(__name__)
+except Exception:
+    import logging
+    class FallbackLogger:
+        def __init__(self):
+            self._logger = logging.getLogger(__name__)
+        def log_struct(self, info, severity="INFO"):
+            self._logger.info(f"{severity}: {info}")
+    logger = FallbackLogger()
+
 allow_origins = (
     os.getenv("ALLOW_ORIGINS", "").split(",") if os.getenv("ALLOW_ORIGINS") else None
 )
