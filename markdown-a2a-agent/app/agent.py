@@ -50,7 +50,9 @@ def write_md_file(filename: str, content: str) -> dict:
         filename = os.path.basename(filename)
         if not filename.endswith(".md"):
             filename += ".md"
-        with open(filename, "w") as f:
+        workspace_dir = os.environ.get("WORKSPACE_DIR", ".")
+        filepath = os.path.join(workspace_dir, filename)
+        with open(filepath, "w") as f:
             f.write(content)
         return {"status": "success", "message": f"Successfully wrote to {filename}"}
     except Exception as e:
